@@ -16,18 +16,18 @@ app.get("/api/download", (req, res) => {
   const videoURL = req.query.url;
   if (!videoURL) return res.status(400).send("URL is required");
 
-  const outputPath = "/tmp/video.mp4";
+  const outputPath = "/tmp/video.mp4"; // temp folder is best
 
   const command = `yt-dlp "${videoURL}" -o "${outputPath}" --merge-output-format mp4 --no-check-certificate`;
 
   exec(command, { maxBuffer: 1024 * 1024 * 200 }, (error) => {
     if (error) {
-      console.log(error);
-      return res.status(500).send("Download failed");
+      console.log("YT-DLP ERROR:", error);
+      return res.status(500).send("Download failed on server");
     }
 
     if (!fs.existsSync(outputPath)) {
-      return res.status(500).send("File not found after download");
+      return res.status(500).send("File not created by yt-dlp");
     }
 
     res.download(outputPath, "video.mp4", () => {
