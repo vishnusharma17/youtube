@@ -16,9 +16,8 @@ app.get("/api/download", (req, res) => {
   const videoURL = req.query.url;
   if (!videoURL) return res.status(400).send("URL is required");
 
-  const outputPath = "/tmp/video.mp4"; // temp folder is best
-
-  const command = `yt-dlp --cookies-from-browser chrome --js-runtimes "deno" "${videoURL}" -o "${outputPath}" --merge-output-format mp4 --no-check-certificate`;
+  const outputPath = "/tmp/video.mp4";
+  const command = `yt-dlp --cookies-from-browser chrome "${videoURL}" -o "${outputPath}" --merge-output-format mp4 --no-check-certificate --user-agent "Mozilla/5.0"`;
 
   exec(command, { maxBuffer: 1024 * 1024 * 200 }, (error) => {
     if (error) {
