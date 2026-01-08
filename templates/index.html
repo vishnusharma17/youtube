@@ -1,70 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>YouTube Downloader</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YouTube Shorts & Reel Downloader</title>
   <style>
-    body { font-family:Poppins,sans-serif; background:#fff; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
-    .card { width:90%; max-width:400px; background:#fafafa; padding:24px; border-radius:20px; box-shadow:0 2px 10px rgba(0,0,0,0.07); text-align:center; }
-    input { width:100%; padding:12px; border:2px solid #ff0000; border-radius:12px; font-size:15px; outline:none; }
-    button { width:100%; padding:12px; background:#ff0000; color:white; border:none; border-radius:12px; font-size:17px; font-weight:700; cursor:pointer; margin-top:16px; }
-    #thumb { width:100%; border-radius:12px; margin-top:16px; display:none; }
-    .note { font-size:13px; margin-top:14px; color:#555; }
+    body { font-family: Poppins, sans-serif; text-align: center; padding: 20px; }
+    input { width: 80%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; margin-top: 10px; }
+    button { padding: 12px 22px; border-radius: 8px; border: none; cursor: pointer; margin-top: 15px; }
+    #preview { margin-top: 20px; }
+    iframe { width: 90%; height: 400px; border-radius: 12px; }
   </style>
 </head>
 <body>
 
-<div class="card">
-  <h1 style="color:#ff0000;font-size:20px;font-weight:700;">YouTube Downloader</h1>
-  <p class="note">Paste link to preview, then download</p>
+  <h2>YouTube Shorts / Instagram Reels Downloader</h2>
 
-  <input id="url" placeholder="Paste YouTube link here..."/>
-  <button onclick="preview()">Preview Video</button>
+  <form onsubmit="event.preventDefault(); previewVideo();">
+    <input type="text" id="videoURL" placeholder="Paste Reel/Shorts URL here..." required />
+    <br>
+    <button type="submit">Preview Video</button>
+  </form>
 
-  <img id="thumb" alt="preview"/>
-
-  <button onclick="download()" style="margin-top:12px;">Download Video</button>
-  <p class="note">Made with ❤️ by Vishnu Sharma</p>
-</div>
+  <div id="preview"></div>
+  <button id="downloadBtn" style="display:none;" onclick="downloadVideo()">Download Now</button>
 
 <script>
-function preview() {
-  const url = document.getElementById("url").value.trim();
-  let id="";
-  if(url.includes("watch?v=")) id=url.split("watch?v=")[1].split("&")[0];
-  if(url.includes("/shorts/")) id=url.split("/shorts/")[1].split("?")[0];
+  function previewVideo(){
+    const url = document.getElementById("videoURL").value.trim();
+    if(url.includes("youtube.com/shorts")){
+      const id = url.split("shorts/")[1].split("?")[0];
+      document.getElementById("preview").innerHTML = `<iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>`;
+    } else if(url.includes("instagram.com")){
+      document.getElementById("preview").innerHTML = `<video controls style="width:90%;border-radius:12px;"><source src="${url}" type="video/mp4"></video>`;
+    }
+    document.getElementById("downloadBtn").style.display="block";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="none";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="inline-block";
+    document.getElementById("downloadBtn").style.display="inline-block";
 
-  if(!id) return alert("Invalid link!");
+    document.getElementById("downloadBtn").style.display="inline-block";
+  }
 
-  const img=`https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
-  document.getElementById("thumb").src=img;
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-  document.getElementById("thumb").style.display="block";
-}
-  
-function download(){
-  const url=document.getElementById("url").value.trim();
-  window.location.href="/api/download?url="+encodeURIComponent(url);
-}
+  async function downloadVideo(){
+    const url = document.getElementById("videoURL").value.trim();
+    const res = await fetch("/api/download?url=" + encodeURIComponent(url));
+    const blob = await res.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "video.mp4";
+    a.click();
+  }
 </script>
 
 </body>
