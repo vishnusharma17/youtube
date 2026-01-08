@@ -8,43 +8,55 @@ os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 @app.route("/api/download")
 def download_api():
-    videoURL = request.args.get("url")
-    if not videoURL:
+    url = request.args.get("url")
+    if not url:
         return {"error": "URL is required"}, 400
 
+    # Instagram always works
+    if "instagram.com" in url:
+        filename = f"{uuid.uuid4()}.mp4"
+        filepath = os.path.join(DOWNLOAD_DIR, filename)
+        try:
+            subprocess.run([
+                "yt-dlp", "-f", "b", "-o", filepath,
+                "--merge-output-format", "mp4",
+                "--no-check-certificate",
+                "--user-agent", "Mozilla/5.0",
+                url
+            ], check=True)
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+        if not os.path.exists(filepath):
+            return {"error": "File not created"}, 500
+
+        return send_file(filepath, as_attachment=True, download_name="video.mp4")
+
+    # YouTube Shorts ko skip karo (server se nahi)
+    if "youtube.com/shorts" in url:
+        return {"error": "Shorts download is only supported from browser preview, server download disabled for stability."}, 200
+
+    # Baaki YouTube videos try karo
     filename = f"{uuid.uuid4()}.mp4"
     filepath = os.path.join(DOWNLOAD_DIR, filename)
-
     try:
-        result = subprocess.run([
-            "yt-dlp",
-            videoURL,
-            "-f", "b",
-            "-o", filepath,
+        subprocess.run([
+            "yt-dlp", "-f", "b", "-o", filepath,
             "--merge-output-format", "mp4",
             "--no-check-certificate",
-            "--user-agent", "Mozilla/5.0"
-        ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        print("STDOUT:", result.stdout.decode())
-        print("STDERR:", result.stderr.decode())
-
-    except subprocess.CalledProcessError as e:
-        return {"error": "Download failed: " + e.stderr.decode()}, 500
+            "--user-agent", "Mozilla/5.0",
+            url
+        ], check=True)
+    except Exception as e:
+        return {"error": str(e)}, 500
 
     if not os.path.exists(filepath):
         return {"error": "File not created"}, 500
 
-    response = send_file(filepath, as_attachment=True, download_name="video.mp4")
+    return send_file(filepath, as_attachment=True, download_name="video.mp4")
 
-    try:
-        os.remove(filepath)
-    except:
-        pass
 
-    return response
-
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
