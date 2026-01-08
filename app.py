@@ -3,7 +3,6 @@ import subprocess, os, uuid
 
 app = Flask(__name__)
 
-# Render/Linux safe temp storage
 DOWNLOAD_DIR = "/tmp/downloads"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
@@ -17,58 +16,36 @@ def download_api():
     filepath = os.path.join(DOWNLOAD_DIR, filename)
 
     try:
-        subprocess.run([
+        result = subprocess.run([
             "yt-dlp",
-            "-f", "b",                     # ✔ permanent fix for format
-            "--merge-output-format", "mp4",
+            videoURL,
+            "-f", "b",
             "-o", filepath,
+            "--merge-output-format", "mp4",
             "--no-check-certificate",
-            "--user-agent", "Mozilla/5.0",
-            videoURL
+            "--user-agent", "Mozilla/5.0"
         ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    except Exception as e:
-        return {"error": str(e)}, 500
+
+        print("STDOUT:", result.stdout.decode())
+        print("STDERR:", result.stderr.decode())
+
+    except subprocess.CalledProcessError as e:
+        return {"error": "Download failed: " + e.stderr.decode()}, 500
 
     if not os.path.exists(filepath):
         return {"error": "File not created"}, 500
 
-    res = send_file(filepath, as_attachment=True, download_name="video.mp4")
+    response = send_file(filepath, as_attachment=True, download_name="video.mp4")
+
     try:
         os.remove(filepath)
     except:
         pass
-    return res
+
+    return response
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    if request.method == "POST":
-        url = request.form.get("url")
-        if not url:
-            return render_template("index.html", error="Please enter a valid URL")
-
-        filename = f"{uuid.uuid4()}.mp4"
-        filepath = os.path.join(DOWNLOAD_DIR, filename)
-
-        try:
-            result = subprocess.run([
-                "yt-dlp",
-                "-f", "b",                     # ✔ same stable format here too
-                "--merge-output-format", "mp4",
-                "-o", filepath,
-                "--no-check-certificate",
-                "--user-agent", "Mozilla/5.0",
-                url
-            ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-            print("Download Log:", result.stdout.decode())
-        except Exception as e:
-            return render_template("index.html", error="Download failed: " + str(e))
-
-        if not os.path.exists(filepath):
-            return render_template("index.html", error="Download failed: File not created")
-
-        return send_file(filepath, as_attachment=True, download_name="video.mp4")
-
     return render_template("index.html")
 
 if __name__ == "__main__":
